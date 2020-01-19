@@ -16,6 +16,10 @@ Puma::Plugin.create do
   def ngrok_start!
     begin
       puts '[puma-ngrok-tunnel] Tunneling at: ' + Ngrok::Tunnel.start(options)
+      puts 'Registering Telegram webhook...'
+      register_telegram_webhook
+      puts 'Telegram webhook registered!...'
+
     rescue Ngrok::FetchUrlError => e
       puts '[puma-ngrok-tunnel] Unable connect to ngrok server (You might be offline): ' + e.to_s
     rescue Ngrok::Error => e
@@ -28,6 +32,10 @@ Puma::Plugin.create do
 
     puts '[puma-ngrok-tunnel] Stopping'
     Ngrok::Tunnel.stop
+  end
+
+  def register_telegram_webhook
+    Net::HTTP.get(URI("https://api.telegram.org/bot#{ENV['TELEGRAM_BOT_TOKEN']}/setWebhook?url=#{Ngrok::Tunnel.ngrok_url_https}/webhooks/telegram"))
   end
 
   def options
